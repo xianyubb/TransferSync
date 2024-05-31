@@ -1,6 +1,11 @@
 {
-    "name": "${pluginName}",
-    "entry": "${pluginFile}",
-    "version": "${pluginVersion}",
-    "type": "native"
+  "name": "${pluginName}",
+  "entry": "${pluginFile}",
+  "version": "${pluginVersion}",
+  "type": "native",
+  "dependencies": [
+    {
+      "name": "LegacyRemoteCall"
+    }
+  ]
 }

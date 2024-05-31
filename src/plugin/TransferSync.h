@@ -1,15 +1,18 @@
 #pragma once
 
+#include "ll/api/Config.h"
+
 #include "ll/api/plugin/NativePlugin.h"
 
-namespace my_plugin {
 
-class MyPlugin {
+namespace transfer_sync {
+
+class TransferSync {
 
 public:
-    static MyPlugin& getInstance();
+    static TransferSync& getInstance();
 
-    MyPlugin(ll::plugin::NativePlugin& self) : mSelf(self) {}
+    TransferSync(ll::plugin::NativePlugin& self) : mSelf(self) {}
 
     [[nodiscard]] ll::plugin::NativePlugin& getSelf() const { return mSelf; }
 
@@ -30,4 +33,4 @@ private:
     ll::plugin::NativePlugin& mSelf;
 };
 
-} // namespace my_plugin
+} // namespace transfer_sync
