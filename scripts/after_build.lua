@@ -88,8 +88,8 @@ function pack_plugin(target,plugin_define)
     local manifest_path = find_file("manifest.json", os.projectdir())
     if manifest_path then
         local manifest = io.readfile(manifest_path)
-        -- local bindir = path.join(os.projectdir(), "bin")
-        local bindir = path.join("D:\\Dev\\LeviLamina-Dev\\LLBDS\\plugins")
+        local bindir = path.join(os.projectdir(), "bin")
+        -- local bindir = path.join("D:\\Dev\\LeviLamina-Dev\\LLBDS\\plugins")
         -- debug dir
         local outputdir = path.join(bindir, plugin_define.pluginName)
         local targetfile = path.join(outputdir, plugin_define.pluginFile)
