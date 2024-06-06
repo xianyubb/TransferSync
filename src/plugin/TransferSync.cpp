@@ -1,17 +1,20 @@
 #include "plugin/TransferSync.h"
-#include "plugin/Config.h"
+#include "plugin/DataStruct/DataStruct.h"
+#include "plugin/Listener.h"
 #include "plugin/RegCommand.h"
 #include "plugin/TransferPacketEvent.h"
 
 
+
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 
-#include "RemoteCallAPI.h"
-#include "hv/WebSocketClient.h"
+#include "nlohmann/json.hpp"
+#include "nlohmann/json_fwd.hpp"
 
-
+#include "ll/api/Logger.h"
 #include "ll/api/event/Emitter.h"
 #include "ll/api/event/EmitterBase.h"
 #include "ll/api/event/EventBus.h"
@@ -22,6 +25,21 @@
 
 
 #include "mc/network/packet/TransferPacket.h"
+
+void DealReceiveMessage(const std::string& msg) {
+    ll::Logger logger;
+
+    try {
+        const auto res = nlohmann::json::parse(msg);
+        if (res["ServerName"] == config.Sync.Name) return;
+        if (res["Type"] == MessageType::ChatMessage) {
+            logger.info(res["Message"]);
+        }
+    } catch (std::runtime_error) {
+        logger.error("json parse error");
+        return;
+    };
+}
 
 
 namespace TransferPacketEvent {
@@ -59,32 +77,30 @@ static std::unique_ptr<ll::event::EmitterBase> emitterFactory(ll::event::Listene
 
 namespace transfer_sync {
 
-Config config;
-
-void loadConfig() {
-    ll::Logger logger;
-    // Load or initialize configurations.
-    const auto& configFilePath = "./plugins/TransferSync/config.json";
-    if (!ll::config::loadConfig(config, configFilePath)) {
-        logger.warn("Cannot load configurations from {}", configFilePath);
-        logger.info("Saving default configurations");
-
-        if (!ll::config::saveConfig(config, configFilePath)) {
-            logger.error("Cannot save default configurations to {}", configFilePath);
-        }
-    }
-};
-
 static std::unique_ptr<TransferSync> instance;
 
 TransferSync& TransferSync::getInstance() { return *instance; }
 
+void loadconfig() {
+    ll::Logger  logger;
+    const auto& configFilePath = "./plugins/TransferSync/config.json";
+    if (!ll::config::loadConfig(config, configFilePath)) {
+        logger.warn("Cannot load configurations from {}", configFilePath);
+        logger.info("Saving default configurations");
+        if (!ll::config::saveConfig(config, configFilePath)) {
+            logger.error("Cannot save default configurations to {}", configFilePath);
+        }
+    }
+}
+
 bool TransferSync::load() {
-    // RegCommand();
+
 
     getSelf().getLogger().info("Loading...");
 
-    loadConfig();
+
+    // Load or initialize configurations.
+    loadconfig();
 
     auto eventBus = &ll::event::EventBus::getInstance();
     RemoteCall::exportAs(
@@ -112,14 +128,22 @@ bool TransferSync::load() {
         }
     );
     // Code for loading the plugin goes here.
+    ws.ws.onopen    = []() { printf("onopen\n"); };
+    ws.ws.onmessage = [](const std::string& msg) {
+        DealReceiveMessage(msg);
+        // printf("onmessage: %.*s\n", (int)msg.size(), msg.data());
+    };
+    ws.ws.onclose = []() { printf("onclose\n"); };
+    ws.connect(config.MSServer.WsAddress, config.MSServer.PassWord);
+    // ws.send("js");
+    Listener::ListenChat(ws);
     return true;
 }
 
 bool TransferSync::enable() {
-
+    RegCommand::regCommand();
     // auto& logger   = getSelf().getLogger();
 
-    hv::WebSocketClient ws;
 
     getSelf().getLogger().info("Enabling...");
     // Code for enabling the plugin goes here.

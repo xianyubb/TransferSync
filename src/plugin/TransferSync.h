@@ -1,7 +1,6 @@
-#pragma once
 
+#include "RemoteCallAPI.h"
 #include "ll/api/Config.h"
-
 #include "ll/api/plugin/NativePlugin.h"
 
 

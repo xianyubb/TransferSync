@@ -9,6 +9,7 @@ add_requires("levilamina")
 add_requires("legacyremotecall")
 add_requires("libhv")
 
+
 if not has_config("vs_runtime") then
     set_runtimes("MD")
 end
